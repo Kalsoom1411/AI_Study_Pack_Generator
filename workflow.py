@@ -5,11 +5,11 @@ from groq import Groq
 import config
 
 def get_client(api_key: str) -> Groq:
-    """Initializes and returns the Groq client."""
+    """Initializes Groq client with API key."""
     return Groq(api_key=api_key)
 
 def _call_json_model(client: Groq, prompt: str) -> dict:
-    """Invokes Groq API requesting JSON responses."""
+    """Executes call to Groq model expecting structured JSON."""
     response = client.chat.completions.create(
         model=config.DEFAULT_MODEL,
         messages=[
@@ -22,31 +22,22 @@ def _call_json_model(client: Groq, prompt: str) -> dict:
     return json.loads(response.choices[0].message.content)
 
 def run_study_pack_pipeline(client: Groq, notes: str, level: str, status_callbacks: dict) -> dict:
-    """
-    Orchestrates the 4-stage Groq AI workflow:
-    1. Planning
-    2. Content Generation
-    3. Assessment Generation
-    4. Review & Refinement
-    """
+    """Orchestrates 4-stage pipeline: Planning -> Generation -> Assessment -> QA & Refinement."""
     # Stage 1: Planning
     if "stage1" in status_callbacks:
-        status_callbacks["stage1"]("⏳ Stage 1: Building Pedagogical Blueprint with Groq...")
-    
+        status_callbacks["stage1"]("⏳ Stage 1: Building Pedagogical Blueprint...")
     plan_prompt = config.PLANNER_PROMPT.format(level=level, notes=notes)
     plan = _call_json_model(client, plan_prompt)
 
     # Stage 2: Content Generation
     if "stage2" in status_callbacks:
-        status_callbacks["stage2"]("⏳ Stage 2: Generating Summary & Flashcards...")
-    
+        status_callbacks["stage2"]("⏳ Stage 2: Generating Core Summary & Flashcards...")
     content_prompt = config.CONTENT_PROMPT.format(plan=json.dumps(plan), notes=notes)
     content = _call_json_model(client, content_prompt)
 
-    # Stage 3: Assessment Engine
+    # Stage 3: Assessment Creation
     if "stage3" in status_callbacks:
         status_callbacks["stage3"]("⏳ Stage 3: Crafting Interactive Quiz Questions...")
-    
     assessment_prompt = config.ASSESSMENT_PROMPT.format(
         objectives=json.dumps(plan.get("learning_objectives", [])),
         notes=notes
@@ -56,7 +47,6 @@ def run_study_pack_pipeline(client: Groq, notes: str, level: str, status_callbac
     # Stage 4: Review & Refinement
     if "stage4" in status_callbacks:
         status_callbacks["stage4"]("⏳ Stage 4: Performing QA & Final Refinement...")
-    
     bundle = {"plan": plan, "content": content, "quiz": quiz}
     reviewer_prompt = config.REVIEWER_PROMPT.format(bundle=json.dumps(bundle))
     final_output = _call_json_model(client, reviewer_prompt)
