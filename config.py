@@ -1,27 +1,27 @@
 # config.py
 
-# Recommended Groq Model
+# Default Groq Model
 DEFAULT_MODEL = "openai/gpt-oss-120b"
 
-# System Prompt Templates
+# System Prompt Templates for Multi-Stage AI Workflow
 PLANNER_PROMPT = """
 You are an Instructional Design Planner.
-Analyze the raw material and create a structured study plan for target academic level: {level}.
+Analyze the provided study notes and build a pedagogical plan suited for target academic level: {level}.
 
-Raw Text:
+Source Text:
 {notes}
 
-Return JSON strictly matching this structure (no conversational preamble):
+Return JSON strictly matching this structure:
 {{
-    "learning_objectives": ["string"],
-    "key_themes": ["string"],
+    "learning_objectives": ["objective 1", "objective 2"],
+    "key_themes": ["theme 1", "theme 2"],
     "estimated_difficulty": "string"
 }}
 """
 
 CONTENT_PROMPT = """
 You are an Expert Educational Content Creator.
-Use the pedagogical blueprint below to draft core study materials from the raw notes.
+Using the provided plan, draft comprehensive study materials from the raw notes.
 
 Blueprint:
 {plan}
@@ -29,18 +29,18 @@ Blueprint:
 Raw Notes:
 {notes}
 
-Return JSON strictly matching this structure (no conversational preamble):
+Return JSON strictly matching this structure:
 {{
-    "summary": "Detailed markdown formatted summary covering all learning objectives",
+    "summary": "Comprehensive markdown summary of core concepts",
     "flashcards": [
-        {{"question": "Front of card question", "answer": "Back of card concise answer"}}
+        {{"question": "Question text", "answer": "Answer text"}}
     ]
 }}
 """
 
 ASSESSMENT_PROMPT = """
-You are an Assessment Engine Specialist.
-Construct 5 challenging multiple-choice questions based on the learning objectives and source material.
+You are an Assessment Specialist.
+Create 5 multiple-choice questions based on the learning objectives and material provided.
 
 Learning Objectives:
 {objectives}
@@ -48,26 +48,25 @@ Learning Objectives:
 Source Material:
 {notes}
 
-Return a JSON array strictly matching this structure (no conversational preamble):
+Return JSON array strictly matching this structure:
 [
   {{
-    "question": "Clear question stem",
+    "question": "Question stem",
     "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correct_answer": "Exact string matching one of the options",
-    "explanation": "Detailed rationale explaining why the answer is correct"
+    "correct_answer": "Exact string matching one option",
+    "explanation": "Rationale for answer"
   }}
 ]
 """
 
 REVIEWER_PROMPT = """
 You are a Lead Curriculum Reviewer.
-Audit this generated Study Pack bundle for factual consistency, target difficulty accuracy, and formatting completeness.
+Audit and refine this study bundle for educational accuracy, completeness, and formatting.
 
-Generated Study Bundle:
+Bundle:
 {bundle}
 
-Refine and fix any formatting errors or incomplete explanations.
-Return JSON strictly matching this structure (no conversational preamble):
+Return JSON strictly matching this structure:
 {{
     "passed": true,
     "summary": "Polished final markdown summary",
@@ -77,6 +76,12 @@ Return JSON strictly matching this structure (no conversational preamble):
             "question": "string",
             "options": ["string", "string", "string", "string"],
             "correct_answer": "string",
+            "explanation": "string"
+        }}
+    ]
+}}
+"""
+
             "explanation": "string"
         }}
     ]
