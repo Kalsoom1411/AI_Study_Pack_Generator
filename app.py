@@ -4,19 +4,18 @@ import streamlit as st
 import workflow
 
 st.set_page_config(
-    page_title="Groq Multi-Stage AI Study Pack Generator",
+    page_title="AI Study Pack Generator",
     page_icon="📚",
     layout="wide"
 )
 
-st.title("⚡ Multi-Stage AI Study Pack Generator (Groq Powered)")
-st.caption("High-Speed Pipeline: Planning ➔ Generation ➔ Assessment ➔ QA & Refinement")
+st.title("⚡ Multi-Stage AI Study Pack Generator")
+st.caption("Structured AI Workflow: Planning ➔ Generation ➔ Assessment ➔ QA & Refinement")
 
 # Sidebar Configuration
 with st.sidebar:
     st.header("Configuration")
     
-    # Retrieves GROQ_API_KEY from Streamlit secrets if available
     api_key_default = st.secrets.get("GROQ_API_KEY", "") if "GROQ_API_KEY" in st.secrets else ""
     api_key = st.text_input("Groq API Key", value=api_key_default, type="password")
     
@@ -27,19 +26,19 @@ with st.sidebar:
     s3_slot = st.empty()
     s4_slot = st.empty()
 
-# Main Inputs
+# Inputs
 notes_input = st.text_area("Paste your source notes or study material here:", height=220)
 level_input = st.selectbox(
     "Select Target Academic Level:",
     ["Beginner / Primary", "Intermediate / High School", "Advanced / University"]
 )
 
-# Execution Button
+# Pipeline Execution
 if st.button("Generate Study Pack", type="primary"):
     if not api_key:
-        st.error("Please provide a valid Groq API Key in the sidebar.")
+        st.error("Please enter a valid Groq API Key in the sidebar.")
     elif not notes_input.strip():
-        st.warning("Please enter source material to process.")
+        st.warning("Please paste study notes or text to process.")
     else:
         status_callbacks = {
             "stage1": lambda msg: s1_slot.info(msg),
@@ -62,7 +61,7 @@ if st.button("Generate Study Pack", type="primary"):
             st.session_state["study_pack_data"] = results
 
         except Exception as e:
-            st.error(f"An error occurred during workflow execution: {e}")
+            st.error(f"Error during workflow execution: {e}")
 
 # Render Output Tabs
 if "study_pack_data" in st.session_state:
@@ -81,7 +80,7 @@ if "study_pack_data" in st.session_state:
         else:
             for idx, card in enumerate(flashcards, 1):
                 with st.expander(f"Flashcard {idx}: {card['question']}"):
-                    st.markdown(f"Answer:")
+                    st.markdown(f"**Answer:** {card['answer']}")
 
     with tab_quiz:
         quiz = data.get("quiz", [])
@@ -104,7 +103,7 @@ if "study_pack_data" in st.session_state:
                     st.info(f"**Explanation:** {q['explanation']}")
                 st.write("---")
 
-    # Export File Generation
+    # Download Button
     export_md = f"# AI GENERATED STUDY PACK\n\n## 📝 Summary\n{data.get('summary', '')}\n\n## 🎴 Flashcards\n"
     for fc in data.get("flashcards", []):
         export_md += f"- **Q:** {fc['question']}\n  **A:** {fc['answer']}\n"
